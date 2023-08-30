@@ -200,6 +200,7 @@ namespace NHibernate.AdoNet
 			{
 				e.Data["actual-sql-query"] = cmd.CommandText;
 				Log.Error("Could not execute command: " + cmd.CommandText, e);
+				Log.Error("sql query with values: " + this.GetSqlWithParamsValues(cmd));
 				throw;
 			}
 			finally
@@ -226,6 +227,7 @@ namespace NHibernate.AdoNet
 			{
 				e.Data["actual-sql-query"] = cmd.CommandText;
 				Log.Error("Could not execute query: " + cmd.CommandText, e);
+				Log.Error("sql query with values: " + this.GetSqlWithParamsValues(cmd));
 				throw;
 			}
 			finally
@@ -465,6 +467,11 @@ namespace NHibernate.AdoNet
 		protected void LogCommand(IDbCommand command)
 		{
 			_factory.Settings.SqlStatementLogger.LogCommand(command, FormatStyle.Basic);
+		}
+
+		protected string GetSqlWithParamsValues(IDbCommand command)
+		{
+			return _factory.Settings.SqlStatementLogger.GetSqlWithParamsValues(command, FormatStyle.Basic);
 		}
 
 		private void LogOpenPreparedCommand()

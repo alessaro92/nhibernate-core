@@ -60,6 +60,15 @@ namespace NHibernate.AdoNet.Util
 			}
 		}
 
+		public virtual string GetSqlWithParamsValues(IDbCommand command, FormatStyle style)
+		{
+			if (string.IsNullOrEmpty(command.CommandText))
+				return string.Empty;
+
+			style = this.DetermineActualStyle(style);
+			return style.Formatter.Format(this.GetCommandLineWithParameters(command));
+		}
+
 		/// <summary> Log a IDbCommand. </summary>
 		/// <param name="command">The SQL statement. </param>
 		/// <param name="style">The requested formatting style. </param>
