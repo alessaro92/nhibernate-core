@@ -22,6 +22,7 @@ namespace NHibernate.AdoNet
 		private IDictionary<string, List<object>> _parameterValueListHashTable;
 		private IDictionary<string, bool> _parameterIsAllNullsHashTable;
 		private StringBuilder _currentBatchCommandsLog;
+		private StringBuilder _currentBatchSqlWithParamsValues;
 
 		public OracleDataClientBatchingBatcher(ConnectionManager connectionManager, IInterceptor interceptor)
 			: base(connectionManager, interceptor)
@@ -32,6 +33,7 @@ namespace NHibernate.AdoNet
 			//behind an if(log.IsDebugEnabled) will cause a null reference exception 
 			//at that point.
 			_currentBatchCommandsLog = new StringBuilder().AppendLine("Batch commands:");
+			this._currentBatchSqlWithParamsValues = new StringBuilder().AppendLine("sql queries batch with values:");
 		}
 
 		public override void AddToBatch(IExpectation expectation)
@@ -54,6 +56,10 @@ namespace NHibernate.AdoNet
 			{
 				Log.Debug("Adding to batch:" + lineWithParameters);
 			}
+			this._currentBatchSqlWithParamsValues.Append("sql query ")
+					.Append(_countOfCommands)
+					.Append(":")
+					.AppendLine(sqlStatementLogger.GetSqlWithParamsValues(CurrentCommand, FormatStyle.Basic));
 
 			if (_currentBatch == null)
 			{
@@ -114,6 +120,8 @@ namespace NHibernate.AdoNet
 					Factory.Settings.SqlStatementLogger.LogBatchCommand(_currentBatchCommandsLog.ToString());
 					_currentBatchCommandsLog = new StringBuilder().AppendLine("Batch commands:");
 				}
+				string currentBatchSqlWithParamsValuesString = this._currentBatchSqlWithParamsValues.ToString();
+				this._currentBatchSqlWithParamsValues = new StringBuilder().AppendLine("sql queries batch with values:");
 
 				foreach (IDataParameter currentParameter in _currentBatch.Parameters)
 				{
@@ -133,6 +141,7 @@ namespace NHibernate.AdoNet
 				}
 				catch (DbException e)
 				{
+					Log.Error(currentBatchSqlWithParamsValuesString);
 					throw ADOExceptionHelper.Convert(Factory.SQLExceptionConverter, e, "could not execute batch command.");
 				}
 
